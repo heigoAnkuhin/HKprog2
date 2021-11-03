@@ -1,374 +1,89 @@
 import express, { Request, Response, Application } from 'express';
+import { port } from './components/general/settings';
+import { notFoundHandler } from "./middleware/notfound.middleware";
+import oppejoudController from './components/oppejoud/controller';
+import oppeaineController from './components/oppeaine/controller';
+import kohtController from './components/koht/controller';
+import paevController from './components/paev/controller';
+import db from './db';
+import responseCodes from './components/general/responseCodes';
+
 const app: Application = express();
 app.use(express.json());
-
-const port = 3000;
-
-const responseCodes = {
-  ok: 200,
-  created: 201,
-  noContent: 204,
-  badRequest: 400,
-  notFound: 404,
-};
-
-// valisin endpointideks - õppejõud, õppeaine, koht, aeg
-
-interface Oppejoud {
-  id: number;
-  eesNimi: string;
-  pereNimi: string;
-}
-
-interface Oppeaine {
-  id: number;
-  aineNimi: string;
-}
-
-interface Koht {
-  id: number;
-  kohaNimi: string;
-}
-
-interface Paev {
-  id: number;
-  paevaNimi: string;
-}
-
-interface DB {
-  oppejoud: Oppejoud[];
-  oppeaine: Oppeaine[];
-  koht: Koht[];
-  nadalapaev: Paev[];
-}
-
-const db: DB = {
-  oppejoud: [
-    {
-      id: 1,
-      eesNimi: 'Juku',
-      pereNimi: 'Juurikas',
-    },
-    {
-      id: 2,
-      eesNimi: 'Mari',
-      pereNimi: 'Maasikas',
-    }
-  ],
-  oppeaine: [
-    {
-      id: 1,
-      aineNimi: 'Riistvara'
-    },
-    {
-      id: 2,
-      aineNimi: 'Programmeerimine',
-    }
-  ],
-  koht : [
-    {
-      id: 1,
-      kohaNimi: 'Klass 1'
-    },
-    {
-      id: 2,
-      kohaNimi: 'Klass 2',
-    }
-  ],
-  nadalapaev: [
-    {
-      id: 1,
-      paevaNimi: 'Esmaspäev'
-    },
-    {
-      id: 2,
-      paevaNimi: 'Kolmpäev',
-    }
-  ]
-}
-
-// õppejõu endpoint
-app.get('/oppejoud', (req: Request, res: Response) => {
-  res.status(responseCodes.ok).json({
-    oppejoud: db.oppejoud,
-  });
-});
+app.use(notFoundHandler); // middleware
 
 
-app.post('/oppejoud', (req: Request, res: Response) => {
-  const { eesNimi, pereNimi } = req.body;
-  const id = db.oppejoud.length + 1;
-  if (!eesNimi) {
-    return res.status(400).json({
-      error: 'Palun täpsusta eesnimi.',
-    });
-  }
-  if (!pereNimi) {
-    return res.status(400).json({
-      error: 'Palun täpsusta perenimi.',
-    });
-  }
-  db.oppejoud.push({
-    id,
-    eesNimi,
-    pereNimi,
-  });
-  return res.status(responseCodes.created).json({
-    id,
-  });
-});
+// **õppejõu endpoint:**
 
-app.patch('/oppejoud/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const { eesNimi, pereNimi } = req.body;
-  const index = db.oppejoud.findIndex((element) => element.id === id);
+// kõikide õppejõudude kuvamine
+app.get('/oppejoud', oppejoudController.kuvaKoikOppejoud);
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Kasutaja täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (!eesNimi && !pereNimi) {
-    return res.status(400).json({
-      error: 'Uuendamiseks vajalikud parameetrid puuduvad.',
-    });
-  }
-  if (index < 0) {
-    return res.status(400).json({
-      error: `Kasutajat, kelle id on ${id} ei eksisteeri`,
-    });
-  }
-  if (eesNimi) {
-    db.oppejoud[index].eesNimi = eesNimi;
-  }
-  if (pereNimi) {
-    db.oppejoud[index].pereNimi = pereNimi;
-  }
-  return res.status(responseCodes.noContent).send();
-});
+// õppejõu otsimine id-ga
+app.get('/oppejoud/:id', oppejoudController.otsiOppejoudu);
 
-app.delete('/oppejoud/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const index = db.oppejoud.findIndex((element) => element.id === id);
+// õppejõu kustutamine
+app.delete('/oppejoud/:id', oppejoudController.kustutaOppejoud);
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Kasutaja täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (index < 0) {
-    return res.status(responseCodes.badRequest).json({
-      message: `Kasutajat, kelle id on ${id} ei eksisteeri.`,
-    });
-  }
-  db.oppejoud.splice(index, 1);
-  return res.status(responseCodes.noContent).send();
-});
+//uue õppejõu lisamine
+app.post('/oppejoud', oppejoudController.lisaOppejoud);
 
-// õppeaine endpoint
+// õppejõu uuendamine
+app.patch('/oppejoud/:id', oppejoudController.uuendaOppejoudu);
 
-app.get('/oppeaine', (req: Request, res: Response) => {
-  res.status(responseCodes.ok).json({
-    oppeaine: db.oppeaine,
-  });
-});
 
-app.post('/oppeaine', (req: Request, res: Response) => {
-  const { aineNimi } = req.body;
-  const id = db.oppeaine.length + 1;
-  if (!aineNimi) {
-    return res.status(400).json({
-      error: 'Palun täpsusta aine nimetus.',
-    });
-  }
-  db.oppeaine.push({
-    id,
-    aineNimi,
-  });
-  return res.status(responseCodes.created).json({
-    id,
-  });
-});
 
-app.patch('/oppeaine/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const { aineNimi } = req.body;
-  const index = db.oppeaine.findIndex((element) => element.id === id);
+// **õppeaine endpoint:**
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Õppeaine täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (!aineNimi) {
-    return res.status(400).json({
-      error: 'Uuendamiseks vajalikud parameetrid puuduvad.',
-    });
-  }
-  if (index < 0) {
-    return res.status(400).json({
-      error: `Õppeainet, mille id on ${id} ei eksisteeri`,
-    });
-  }
-  if (aineNimi) {
-    db.oppeaine[index].aineNimi = aineNimi;
-  }
-  return res.status(responseCodes.noContent).send();
-});
+// kõikide õppeainete kuvamine
+app.get('/oppeaine', oppeaineController.kuvaKoikOppeained);
 
-app.delete('/oppeaine/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const index = db.oppeaine.findIndex((element) => element.id === id);
+// õppeainete otsimine id-ga
+app.get('/oppeaine/:id', oppeaineController.otsiOppeainet);
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Õppeaine täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (index < 0) {
-    return res.status(responseCodes.badRequest).json({
-      message: `Õppeainet, mille id on ${id} ei eksisteeri.`,
-    });
-  }
-  db.oppeaine.splice(index, 1);
-  return res.status(responseCodes.noContent).send();
-});
+// õppeaine kustutamine
+app.delete('/oppeaine/:id', oppeaineController.kustutaOppeaine);
 
-// koha endpoint
-app.get('/koht', (req: Request, res: Response) => {
-  res.status(responseCodes.ok).json({
-    koht: db.koht,
-  });
-});
+//uue õppeaine lisamine
+app.post('/oppeaine', oppeaineController.lisaOppeaine);
 
-app.post('/koht', (req: Request, res: Response) => {
-  const { kohaNimi } = req.body;
-  const id = db.koht.length + 1;
-  if (!kohaNimi) {
-    return res.status(400).json({
-      error: 'Palun täpsusta klassiruum.',
-    });
-  }
-  db.koht.push({
-    id,
-    kohaNimi,
-  });
-  return res.status(responseCodes.created).json({
-    id,
-  });
-});
+// õppeaine uuendamine
+app.patch('/oppeaine/:id', oppeaineController.uuendaOppeainet);
 
-app.patch('/koht/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const { kohaNimi } = req.body;
-  const index = db.koht.findIndex((element) => element.id === id);
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Koha täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (!kohaNimi) {
-    return res.status(400).json({
-      error: 'Uuendamiseks vajalikud parameetrid puuduvad.',
-    });
-  }
-  if (index < 0) {
-    return res.status(400).json({
-      error: `Klassiruumi, mille id on ${id} ei eksisteeri`,
-    });
-  }
-  if (kohaNimi) {
-    db.koht[index].kohaNimi = kohaNimi;
-  }
-  return res.status(responseCodes.noContent).send();
-});
+// **koha endpoint:**
 
-app.delete('/koht/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const index = db.koht.findIndex((element) => element.id === id);
+// kõikide kohtade kuvamine
+app.get('/koht', kohtController.kuvaKoikKohad);
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Koha täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (index < 0) {
-    return res.status(responseCodes.badRequest).json({
-      message: `Klassiruumi, mille id on ${id} ei eksisteeri.`,
-    });
-  }
-  db.koht.splice(index, 1);
-  return res.status(responseCodes.noContent).send();
-});
+// kohtade otsimine id-ga
+app.get('/koht/:id', kohtController.otsiKohta);
 
-// aja ehk nädalapäeva endpoint
-app.get('/nadalapaev', (req: Request, res: Response) => {
-  res.status(responseCodes.ok).json({
-    nadalapaev: db.nadalapaev,
-  });
-});
+// õppeaine kustutamine
+app.delete('/koht/:id', kohtController.kustutaKoht);
 
-app.post('/nadalapaev', (req: Request, res: Response) => {
-  const { paevaNimi } = req.body;
-  const id = db.nadalapaev.length + 1;
-  if (!paevaNimi) {
-    return res.status(400).json({
-      error: 'Palun täpsusta nädalapäev.',
-    });
-  }
-  db.nadalapaev.push({
-    id,
-    paevaNimi,
-  });
-  return res.status(responseCodes.created).json({
-    id,
-  });
-});
+//uue õppeaine lisamine
+app.post('/koht', kohtController.lisaKoht);
 
-app.patch('/nadalapaev/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const { paevaNimi } = req.body;
-  const index = db.nadalapaev.findIndex((element) => element.id === id);
+// õppeaine uuendamine
+app.patch('/koht/:id', kohtController.uuendaKohta);
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Päeva täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (!paevaNimi) {
-    return res.status(400).json({
-      error: 'Uuendamiseks vajalikud parameetrid puuduvad.',
-    });
-  }
-  if (index < 0) {
-    return res.status(400).json({
-      error: `Nädalapäeva, mille id on ${id} ei eksisteeri`,
-    });
-  }
-  if (paevaNimi) {
-    db.nadalapaev[index].paevaNimi = paevaNimi;
-  }
-  return res.status(responseCodes.noContent).send();
-});
 
-app.delete('/nadalapaev/:id', (req: Request, res: Response) => {
-  const id: number = parseInt(req.params.id, 10);
-  const index = db.nadalapaev.findIndex((element) => element.id === id);
+// **aja ehk nädalapäeva endpoint:**
 
-  if (!id) {
-    return res.status(400).json({
-      error: 'Päeva täpsustamiseks on vajalik ID.',
-    });
-  }
-  if (index < 0) {
-    return res.status(responseCodes.badRequest).json({
-      message: `Nädalapäeva, mille id on ${id} ei eksisteeri.`,
-    });
-  }
-  db.nadalapaev.splice(index, 1);
-  return res.status(responseCodes.noContent).send();
-});
+// kõikide aegade kuvamine
+app.get('/paev', paevController.kuvaKoikPaevad);
+
+// aegade otsimine id-ga
+app.get('/paev/:id', paevController.otsiPaeva);
+
+// aja kustutamine
+app.delete('/paev/:id', paevController.kustutaPaev);
+
+//uue aja lisamine
+app.post('/paev', paevController.lisaPaev);
+
+// aja uuendamine
+app.patch('/paev/:id', paevController.uuendaPaeva);
 
 
 app.listen(port, () => {
