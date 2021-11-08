@@ -1,16 +1,23 @@
 import express, { Request, Response, Application } from 'express';
 import { port } from './components/general/settings';
 import { notFoundHandler } from "./middleware/notfound.middleware";
+import { errorHandler } from "./middleware/errors.middleware";
 import oppejoudController from './components/oppejoud/controller';
 import oppeaineController from './components/oppeaine/controller';
 import kohtController from './components/koht/controller';
 import paevController from './components/paev/controller';
 import db from './db';
 import responseCodes from './components/general/responseCodes';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './openapi.json';
+
+
 
 const app: Application = express();
 app.use(express.json());
-app.use(notFoundHandler); // middleware
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(errorHandler); // middleware 1
+//app.use(notFoundHandler); // middleware 2
 
 
 // **õppejõu endpoint:**
