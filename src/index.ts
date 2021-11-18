@@ -2,10 +2,13 @@ import express, { Request, Response, Application } from 'express';
 import { port } from './components/general/settings';
 import { notFoundHandler } from "./middleware/notfound.middleware";
 import { errorHandler } from "./middleware/errors.middleware";
+import isLoggedIn from "./middleware/isLoggedIn.middleware";
 import oppejoudController from './components/oppejoud/controller';
 import oppeaineController from './components/oppeaine/controller';
 import kohtController from './components/koht/controller';
 import paevController from './components/paev/controller';
+import kasutajaController from './components/kasutaja/controller';
+import authController from './components/auth/controller';
 import db from './db';
 import responseCodes from './components/general/responseCodes';
 import swaggerUi from 'swagger-ui-express';
@@ -19,6 +22,16 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(errorHandler); // middleware 1
 //app.use(notFoundHandler); // middleware 2
 
+// **ENNE SISSE LOGIMIST ON SAADAVAL AINULT JÄRGMISED ENDPOINDID:**
+
+// Uue kasutaja lisamine:
+app.post('/kasutaja', kasutajaController.lisaKasutaja);
+
+// Sisselogimine: 
+app.post('/login', authController.login);
+
+// **PEALE SISSE LOGIMIST MUUTUVAD KÄTTESAADAVAKS KA ÜLEJÄÄNUD ENDPOINDID:
+app.use(isLoggedIn); // kontroll kas tegemist on sisse logitud kasutajaga
 
 // **õppejõu endpoint:**
 
@@ -92,6 +105,20 @@ app.post('/paev', paevController.lisaPaev);
 // aja uuendamine
 app.patch('/paev/:id', paevController.uuendaPaeva);
 
+
+// **kasutaja endpoint:**
+
+// kõikide kasutajate kuvamine
+app.get('/kasutaja', kasutajaController.kuvaKoikKasutajad);
+
+// kasutajate otsimine id-ga
+app.get('/kasutaja/:id', kasutajaController.otsiKasutajat_id);
+
+// kasutaja kustutamine
+app.delete('/kasutaja/:id', kasutajaController.kustutaKasutaja);
+
+// kasutaja uuendamine
+app.patch('/kasutaja/:id', kasutajaController.uuendaKasutajat);
 
 app.listen(port, () => {
   console.log('Server is running');

@@ -2,6 +2,7 @@ import Oppejoud from './components/oppejoud/interfaces';
 import Oppeaine from './components/oppeaine/interfaces';
 import Koht from './components/koht/interfaces';
 import Paev from './components/paev/interfaces';  
+import { Kasutaja } from './components/kasutaja/interfaces';
 
   
   interface DB {
@@ -9,6 +10,7 @@ import Paev from './components/paev/interfaces';
     oppeaine: Oppeaine[];
     koht: Koht[];
     nadalapaev: Paev[];
+    kasutaja: Kasutaja[];
   }
   
   const db: DB = {
@@ -53,7 +55,25 @@ import Paev from './components/paev/interfaces';
         id: 2,
         paevaNimi: 'Kolmpäev',
       }
-    ]
-  }
+    ],
+    kasutaja: [
+      {
+        id: 1,
+        eesNimi: 'Kaarel',
+        pereNimi: 'Kartul',
+        kasutajaNimi: 'kaarelkartul',
+        parool: '$2b$10$.XOfCvarZ.cJUW5EvY2qAOWGNg9U4hPlCinv5k.H6EjqLkO/NB/Yy',
+        roll: 'Kasutaja',
+      },
+      {
+        id: 2,
+        eesNimi: 'Paavel',
+        pereNimi: 'Pasun',
+        kasutajaNimi: 'paavelpasun',
+        parool: '$2b$10$S.Xm9GMVsqpl34OcRJNG2uO8VGq0pR/BfSaurEWaUUZYfdziTkg7y',
+        roll: 'Kasutaja',
+      },
+    ],
+  };
 
   export default db;
