@@ -9,7 +9,6 @@ import kohtController from './components/koht/controller';
 import paevController from './components/paev/controller';
 import kasutajaController from './components/kasutaja/controller';
 import authController from './components/auth/controller';
-import db from './db';
 import responseCodes from './components/general/responseCodes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './openapi.json';

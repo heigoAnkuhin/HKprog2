@@ -1,6 +1,16 @@
-interface Paev {
-    id: number;
-    paevaNimi: string;
-  }
+import { RowDataPacket } from 'mysql2';
 
-  export default Paev;
+interface uusPaev {
+  paevaNimi: string;
+}
+
+interface Paev extends uusPaev, RowDataPacket {
+  id: number;
+}
+
+interface uuendaPaeva {
+  id: number;
+  paevaNimi?: string;
+}
+
+export { Paev, uuendaPaeva, uusPaev };

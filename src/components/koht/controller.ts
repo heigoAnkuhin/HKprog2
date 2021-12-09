@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
-import db from '../../db';
 import responseCodes from '../general/responseCodes';
+import { uusKoht } from './interfaces';
 import kohtService from './service';
 
 const kohtController = {
 
-    kuvaKoikKohad: (req: Request, res: Response) => {
-        const koht = kohtService.kuvaKoikKohad();
+    kuvaKoikKohad: async (req: Request, res: Response) => {
+        const koht = await kohtService.kuvaKoikKohad();
         return res.status(responseCodes.ok).json({
           koht,
         });
       },
 
-      otsiKohta: (req: Request, res: Response) => {
+      otsiKohta: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
@@ -20,7 +20,7 @@ const kohtController = {
           });
         }
 
-        const koht = kohtService.otsiKohta(id);
+        const koht = await kohtService.otsiKohta(id);
         if (!koht) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud kohta, mille id oleks: ${id}`,
@@ -31,14 +31,14 @@ const kohtController = {
         });
       },
 
-      kustutaKoht:  (req: Request, res: Response) => {
+      kustutaKoht:  async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada ID',
           });
         }
-        const koht = kohtService.otsiKohta(id);
+        const koht = await kohtService.otsiKohta(id);
         if (!koht) {
           return res.status(responseCodes.badRequest).json({
             message: `Ei leitud kohta, mille id oleks: ${id}`,
@@ -48,20 +48,23 @@ const kohtController = {
         return res.status(responseCodes.noContent).json({});
       },
 
-      lisaKoht: (req: Request, res: Response) => {
+      lisaKoht: async (req: Request, res: Response) => {
         const { kohaNimi } = req.body;
         if (!kohaNimi) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada koht',
           });
         }
-        const id = kohtService.lisaKoht(kohaNimi);
+        const uusKoht: uusKoht = {
+          kohaNimi,
+        };
+        const id = await kohtService.lisaKoht(kohaNimi);
         return res.status(responseCodes.created).json({
           id,
         });
       },
 
-      uuendaKohta: (req: Request, res: Response) => {
+      uuendaKohta: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         const { kohaNimi } = req.body;
         if (!id) {
@@ -74,7 +77,7 @@ const kohtController = {
             error: 'Pole midagi uuendada',
           });
         }
-        const koht = kohtService.otsiKohta(id);
+        const koht = await kohtService.otsiKohta(id);
         if (!koht) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud kohta, mille id oleks: ${id}`,

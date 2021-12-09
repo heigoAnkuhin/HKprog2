@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
-import db from '../../db';
 import responseCodes from '../general/responseCodes';
+import { uusOppeaine } from './interfaces';
 import oppeaineService from './service';
 
 const oppeaineController = {
 
-    kuvaKoikOppeained: (req: Request, res: Response) => {
-        const oppeaine = oppeaineService.kuvaKoikOppeained();
+    kuvaKoikOppeained: async (req: Request, res: Response) => {
+        const oppeaine = await oppeaineService.kuvaKoikOppeained();
         return res.status(responseCodes.ok).json({
           oppeaine,
         });
       },
 
-      otsiOppeainet: (req: Request, res: Response) => {
+      otsiOppeainet: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
@@ -20,7 +20,7 @@ const oppeaineController = {
           });
         }
 
-        const oppeaine = oppeaineService.otsiOppeainet(id);
+        const oppeaine = await oppeaineService.otsiOppeainet(id);
         if (!oppeaine) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud õppeainet, mille id oleks: ${id}`,
@@ -31,14 +31,14 @@ const oppeaineController = {
         });
       },
 
-      kustutaOppeaine:  (req: Request, res: Response) => {
+      kustutaOppeaine:  async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada ID',
           });
         }
-        const oppeaine = oppeaineService.otsiOppeainet(id);
+        const oppeaine = await oppeaineService.otsiOppeainet(id);
         if (!oppeaine) {
           return res.status(responseCodes.badRequest).json({
             message: `Ei leitud õppeainet, mille id oleks: ${id}`,
@@ -48,40 +48,61 @@ const oppeaineController = {
         return res.status(responseCodes.noContent).json({});
       },
 
-      lisaOppeaine: (req: Request, res: Response) => {
-        const { aineNimi } = req.body;
+      lisaOppeaine: async (req: Request, res: Response) => {
+        const { aineNimi, oppejoud_id, koht_id, nadalapaev_id } = req.body;
         if (!aineNimi) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada aine nimetus',
           });
         }
-        const id = oppeaineService.lisaOppeaine(aineNimi);
+        if (!oppejoud_id) {
+          return res.status(responseCodes.badRequest).json({
+            error: 'Vajalik on täpsustada õppejõu ID',
+          });
+        }
+        if (!koht_id) {
+          return res.status(responseCodes.badRequest).json({
+            error: 'Vajalik on täpsustada koha ID',
+          });
+        }
+        if (!nadalapaev_id) {
+          return res.status(responseCodes.badRequest).json({
+            error: 'Vajalik on täpsustada nädalapäeva ID',
+          });
+        }
+        const uusOppeaine: uusOppeaine = {
+          aineNimi,
+          oppejoud_id,
+          koht_id,
+          nadalapaev_id
+        };
+        const id = await oppeaineService.lisaOppeaine(uusOppeaine);
         return res.status(responseCodes.created).json({
           id,
         });
       },
 
-      uuendaOppeainet: (req: Request, res: Response) => {
+      uuendaOppeainet: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
-        const { aineNimi } = req.body;
+        const { aineNimi, oppejoud_id, koht_id, nadalapaev_id } = req.body;
         if (!id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada ID',
           });
         }
-        if (!aineNimi) {
+        if (!aineNimi && !oppejoud_id && !koht_id && !nadalapaev_id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Pole midagi uuendada',
           });
         }
-        const oppeaine = oppeaineService.otsiOppeainet(id);
+        const oppeaine = await oppeaineService.otsiOppeainet(id);
         if (!oppeaine) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud õppeainet, mille id oleks: ${id}`,
           });
         }
         
-        oppeaineService.uuendaOppeainet({ id, aineNimi });
+        oppeaineService.uuendaOppeainet({ id, aineNimi, oppejoud_id, koht_id, nadalapaev_id });
         return res.status(responseCodes.noContent).json({});
       },
 };

@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
-import db from '../../db';
 import responseCodes from '../general/responseCodes';
+import { uusOppejoud } from './interfaces';
 import oppejoudService from './service';
 
 const oppejoudController = {
 
-    kuvaKoikOppejoud: (req: Request, res: Response) => {
-        const users = oppejoudService.kuvaKoikOppejoud();
+    kuvaKoikOppejoud: async (req: Request, res: Response) => {
+        const oppejoud = await oppejoudService.kuvaKoikOppejoud();
         return res.status(responseCodes.ok).json({
-          users,
+          oppejoud,
         });
       },
 
-      otsiOppejoudu: (req: Request, res: Response) => {
+      otsiOppejoudu: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
@@ -20,7 +20,7 @@ const oppejoudController = {
           });
         }
 
-        const oppejoud = oppejoudService.otsiOppejoudu(id);
+        const oppejoud = await oppejoudService.otsiOppejoudu(id);
         if (!oppejoud) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud õppejoudu, kelle id oleks: ${id}`,
@@ -31,14 +31,14 @@ const oppejoudController = {
         });
       },
 
-      kustutaOppejoud:  (req: Request, res: Response) => {
+      kustutaOppejoud:  async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada ID',
           });
         }
-        const oppejoud = oppejoudService.otsiOppejoudu(id);
+        const oppejoud = await oppejoudService.otsiOppejoudu(id);
         if (!oppejoud) {
           return res.status(responseCodes.badRequest).json({
             message: `Ei leitud õppejoudu, kelle id oleks: ${id}`,
@@ -48,8 +48,8 @@ const oppejoudController = {
         return res.status(responseCodes.noContent).json({});
       },
 
-      lisaOppejoud: (req: Request, res: Response) => {
-        const { eesNimi, pereNimi } = req.body;
+      lisaOppejoud: async (req: Request, res: Response) => {
+        const { eesNimi, pereNimi, kasutaja_id } = req.body;
         if (!eesNimi) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada eesnimi',
@@ -60,33 +60,43 @@ const oppejoudController = {
             error: 'Vajalik on täpsustada perenimi',
           });
         }
-        const id = oppejoudService.lisaOppejoud(eesNimi, pereNimi);
+        if (!kasutaja_id) {
+          return res.status(responseCodes.badRequest).json({
+            error: 'Vajalik on täpsustada kasutaja ID',
+          });
+        }
+        const uusOppejoud: uusOppejoud = {
+          eesNimi,
+          pereNimi,
+          kasutaja_id,
+        };
+        const id = await oppejoudService.lisaOppejoud(uusOppejoud);
         return res.status(responseCodes.created).json({
           id,
         });
       },
 
-      uuendaOppejoudu: (req: Request, res: Response) => {
+      uuendaOppejoudu: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
-        const { eesNimi, pereNimi } = req.body;
+        const { eesNimi, pereNimi, kasutaja_id } = req.body;
         if (!id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada ID',
           });
         }
-        if (!eesNimi && !pereNimi) {
+        if (!eesNimi && !pereNimi && !kasutaja_id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Pole midagi uuendada',
           });
         }
-        const oppejoud = oppejoudService.otsiOppejoudu(id);
+        const oppejoud = await oppejoudService.otsiOppejoudu(id);
         if (!oppejoud) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud õppejoudu, kelle id oleks: ${id}`,
           });
         }
         
-        oppejoudService.uuendaOppejoudu({ id, eesNimi, pereNimi });
+        oppejoudService.uuendaOppejoudu({ id, eesNimi, pereNimi, kasutaja_id });
         return res.status(responseCodes.noContent).json({});
       },
 };

@@ -1,46 +1,74 @@
-import db from '../../db';
+//import db from '../../db';
+import { FieldPacket, ResultSetHeader } from 'mysql2';
+import yhendus from '../../database';
 import { Kasutaja, uuendaKasutajat, uusKasutaja } from './interfaces';
 import hashService from '../general/services/hashService';
 
 const kasutajaService = {
-  kuvaKoikKasutajad: (): Kasutaja[] => {
-    const { kasutaja } = db;
-    return kasutaja;
+  kuvaKoikKasutajad: async (): Promise<Kasutaja[] | false> => {
+    try {
+      const [kasutaja]: [Kasutaja[], FieldPacket[]] = await yhendus.query('SELECT id, eesNimi, pereNimi, kasutajaNimi, roll FROM kasutaja');
+      return kasutaja;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   },
 
-  otsiKasutajat_id: (id: number): Kasutaja | undefined => {
-    const kasutaja = db.kasutaja.find((element) => element.id === id);
-    return kasutaja;
-  },
-  otsiKasutajat_kasutajaNimi: (kasutajaNimi: string): Kasutaja | undefined => {
-    const kasutaja = db.kasutaja.find((element) => element.kasutajaNimi === kasutajaNimi);
-    return kasutaja;
-  },
-  kustutaKasutaja: (id: number): boolean => {
-    const index = db.kasutaja.findIndex((element) => element.id === id);
-    db.kasutaja.splice(index, 1);
-    return true;
-  },
-  lisaKasutaja: async (uusKasutaja: uusKasutaja) => {
-    const id = db.kasutaja.length + 1;
-    const hashitudParool = await hashService.hash(uusKasutaja.parool);
-    db.kasutaja.push({
-      id,
-      ...uusKasutaja,
-      parool: hashitudParool,
-    });
-    return id;
-  },
-  uuendaKasutajat: (user: uuendaKasutajat): boolean => {
-    const { id, eesNimi, pereNimi } = user;
-    const index = db.kasutaja.findIndex((element) => element.id === id);
-    if (eesNimi) {
-      db.kasutaja[index].eesNimi = eesNimi;
+  otsiKasutajat_id: async (id: number): Promise<Kasutaja | false> => {
+    try {
+      const [kasutaja]: [Kasutaja[], FieldPacket[]] = await yhendus.query(
+        'SELECT id, eesNimi, pereNimi, kasutajaNimi FROM kasutaja WHERE id = ?', [id],
+      );
+      return kasutaja[0];
+    } catch (error) {
+      console.log(error);
+      return false;
     }
-    if (pereNimi) {
-      db.kasutaja[index].pereNimi = pereNimi;
+  },
+  otsiKasutajat_kasutajaNimi: async (kasutajaNimi: string): Promise<Kasutaja | false> => {
+    try {
+      const [kasutaja]: [Kasutaja[], FieldPacket[]] = await yhendus.query('SELECT * FROM kasutaja WHERE kasutajaNimi = ?', [kasutajaNimi]);
+      return kasutaja[0];
+    } catch (error) {
+      console.log(error);
+      return false;
     }
-    return true;
+  },
+  kustutaKasutaja: async (id: number): Promise<boolean> => {
+    try {
+      await yhendus.query('DELETE FROM kasutaja WHERE id = ?', [id]);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+  lisaKasutaja: async (uusKasutaja: uusKasutaja): Promise<number | false> => {
+    try {
+      const hashitudParool = await hashService.hash(uusKasutaja.parool);
+      const kasutaja = {
+        ...uusKasutaja,
+        parool: hashitudParool,
+      };
+      const [result]: [ResultSetHeader, FieldPacket[]] = await yhendus.query('INSERT INTO kasutaja SET ?', [kasutaja]);
+      return result.insertId;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+  uuendaKasutajat: async (kasutaja: uuendaKasutajat): Promise<boolean> => {
+    try {
+      const uuendatavKasutaja = { ...kasutaja };
+      if (kasutaja.parool) uuendatavKasutaja.parool = await hashService.hash(kasutaja.parool);
+      const result = await yhendus.query('UPDATE kasutaja SET ? WHERE id = ?', [uuendatavKasutaja, kasutaja.id]);
+      console.log(result);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   },
 };
 

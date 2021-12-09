@@ -1,3 +1,4 @@
+import { RowDataPacket } from 'mysql2';
 // Kasutaja interface
 
  interface uusKasutaja {
@@ -8,7 +9,7 @@
     roll: 'Administraator' | 'Kasutaja';
   }
   
-  interface Kasutaja extends uusKasutaja{
+  interface Kasutaja extends uusKasutaja, RowDataPacket {
     id: number;
   }
   

@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
-import db from '../../db';
 import responseCodes from '../general/responseCodes';
+import { uusPaev } from './interfaces';
 import paevService from './service';
 
 const paevController = {
 
-    kuvaKoikPaevad: (req: Request, res: Response) => {
-        const nadalapaev = paevService.kuvaKoikPaevad();
+    kuvaKoikPaevad: async (req: Request, res: Response) => {
+        const nadalapaev = await paevService.kuvaKoikPaevad();
         return res.status(responseCodes.ok).json({
           nadalapaev,
         });
       },
 
-      otsiPaeva: (req: Request, res: Response) => {
+      otsiPaeva: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
@@ -20,7 +20,7 @@ const paevController = {
           });
         }
 
-        const nadalapaev = paevService.otsiPaeva(id);
+        const nadalapaev = await paevService.otsiPaeva(id);
         if (!nadalapaev) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud päeva, mille id oleks: ${id}`,
@@ -31,14 +31,14 @@ const paevController = {
         });
       },
 
-      kustutaPaev:  (req: Request, res: Response) => {
+      kustutaPaev:  async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada ID',
           });
         }
-        const nadalapaev = paevService.otsiPaeva(id);
+        const nadalapaev = await paevService.otsiPaeva(id);
         if (!nadalapaev) {
           return res.status(responseCodes.badRequest).json({
             message: `Ei leitud päeva, mille id oleks: ${id}`,
@@ -48,20 +48,22 @@ const paevController = {
         return res.status(responseCodes.noContent).json({});
       },
 
-      lisaPaev: (req: Request, res: Response) => {
+      lisaPaev: async (req: Request, res: Response) => {
         const { paevaNimi } = req.body;
         if (!paevaNimi) {
           return res.status(responseCodes.badRequest).json({
             error: 'Vajalik on täpsustada nädalapäev',
           });
         }
-        const id = paevService.lisaPaev(paevaNimi);
+        const uusPaev: uusPaev = {
+          paevaNimi,
+        };
+        const id = await paevService.lisaPaev(uusPaev);
         return res.status(responseCodes.created).json({
           id,
         });
       },
-
-      uuendaPaeva: (req: Request, res: Response) => {
+      uuendaPaeva: async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         const { paevaNimi } = req.body;
         if (!id) {
@@ -74,7 +76,7 @@ const paevController = {
             error: 'Pole midagi uuendada',
           });
         }
-        const nadalapaev = paevService.otsiPaeva(id);
+        const nadalapaev = await paevService.otsiPaeva(id);
         if (!nadalapaev) {
           return res.status(responseCodes.badRequest).json({
             error: `Ei leitud päeva, mille id oleks: ${id}`,

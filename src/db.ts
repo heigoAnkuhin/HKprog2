@@ -1,4 +1,4 @@
-import Oppejoud from './components/oppejoud/interfaces';
+/*import Oppejoud from './components/oppejoud/interfaces';
 import Oppeaine from './components/oppeaine/interfaces';
 import Koht from './components/koht/interfaces';
 import Paev from './components/paev/interfaces';  
@@ -10,7 +10,7 @@ import { Kasutaja } from './components/kasutaja/interfaces';
     oppeaine: Oppeaine[];
     koht: Koht[];
     nadalapaev: Paev[];
-    kasutaja: Kasutaja[];
+    //kasutaja: Kasutaja[];
   }
   
   const db: DB = {
@@ -56,6 +56,7 @@ import { Kasutaja } from './components/kasutaja/interfaces';
         paevaNimi: 'Kolmpäev',
       }
     ],
+    
     kasutaja: [
       {
         id: 1,
@@ -77,3 +78,4 @@ import { Kasutaja } from './components/kasutaja/interfaces';
   };
 
   export default db;
+  */

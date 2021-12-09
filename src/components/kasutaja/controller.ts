@@ -4,13 +4,13 @@ import kasutajaService from './service';
 import { uuendaKasutajat, uusKasutaja } from './interfaces';
 
 const kasutajaController = {
-  kuvaKoikKasutajad: (req: Request, res: Response) => {
-    const kasutaja = kasutajaService.kuvaKoikKasutajad();
+  kuvaKoikKasutajad: async (req: Request, res: Response) => {
+    const kasutaja = await kasutajaService.kuvaKoikKasutajad();
     return res.status(responseCodes.ok).json({
       kasutaja,
     });
   },
-  otsiKasutajat_id: (req: Request, res: Response) => {
+  otsiKasutajat_id: async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id, 10);
     if (!id) {
       return res.status(responseCodes.badRequest).json({
@@ -27,7 +27,24 @@ const kasutajaController = {
       kasutaja,
     });
   },
-  kustutaKasutaja: (req: Request, res: Response) => {
+  otsiKasutajat_kasutajaNimi: async (req: Request, res: Response) => {
+    const kasutajaNimi: string = req.params.kasutajaNimi;
+    if (!kasutajaNimi) {
+      return res.status(responseCodes.badRequest).json({
+        error: 'Vajalik on täpsustada kasutajanimi',
+      });
+    }
+    const kasutaja = await kasutajaService.otsiKasutajat_kasutajaNimi(kasutajaNimi);
+    if (!kasutaja) {
+      return res.status(responseCodes.badRequest).json({
+        error: `Ei leitud kasutajat, kelle kasutajanimi oleks: ${kasutajaNimi}`,
+      });
+    }
+    return res.status(responseCodes.ok).json({
+      kasutaja,
+    });
+  },
+  kustutaKasutaja: async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id, 10);
     if (!id) {
       return res.status(responseCodes.badRequest).json({
@@ -79,7 +96,7 @@ const kasutajaController = {
       id,
     });
   },
-  uuendaKasutajat: (req: Request, res: Response) => {
+  uuendaKasutajat: async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id, 10);
     const { eesNimi, pereNimi } = req.body;
     if (!id) {
