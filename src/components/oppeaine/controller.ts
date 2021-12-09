@@ -31,6 +31,24 @@ const oppeaineController = {
         });
       },
 
+      otsiOppeainet_oppejoud: async (req: Request, res: Response) => {
+        const id: number = parseInt(req.params.id, 10);
+        if (!id) {
+          return res.status(responseCodes.badRequest).json({
+            error: 'Vajalik on täpsustada õppejõu ID',
+          });
+        }
+        const oppeaine = await oppeaineService.otsiOppeainet_oppejoud(id);
+        if (!oppeaine) {
+          return res.status(responseCodes.badRequest).json({
+            error: `Ei leitud õppeainet, mille õppejõu id oleks: ${id}`,
+          });
+        }
+        return res.status(responseCodes.ok).json({
+          oppeaine,
+        });
+      },
+
       kustutaOppeaine:  async (req: Request, res: Response) => {
         const id: number = parseInt(req.params.id, 10);
         if (!id) {

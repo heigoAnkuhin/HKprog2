@@ -7,7 +7,12 @@ const oppeaineService = {
 
   kuvaKoikOppeained: async (): Promise<Oppeaine[] | false> => {
     try {
-      const [oppeaine]: [Oppeaine[], FieldPacket[]] = await yhendus.query('SELECT id, aineNimi, oppejoud_id, koht_id, nadalapaev_id FROM oppeaine');
+      const [oppeaine]: [Oppeaine[], FieldPacket[]] = await yhendus.query(
+        `SELECT oppeaine.id, aineNimi, CONCAT(oppejoud.eesNimi, " ", oppejoud.pereNimi) AS Oppejoud,
+         koht.kohaNimi AS Koht, nadalapaev.paevaNimi AS Paev FROM oppeaine
+         INNER JOIN oppejoud ON oppejoud_id = oppejoud.id
+         INNER JOIN koht ON koht_id = koht.id
+         INNER JOIN nadalapaev ON nadalapaev_id = nadalapaev.id`);
       return oppeaine;
     } catch (error) {
       console.log(error);
@@ -17,9 +22,27 @@ const oppeaineService = {
   otsiOppeainet: async (id: number): Promise<Oppeaine | false> => {
     try {
       const [oppeaine]: [Oppeaine[], FieldPacket[]] = await yhendus.query(
-        'SELECT id, aineNimi, oppejoud_id, koht_id, nadalapaev_id FROM oppeaine WHERE id = ?', [id],
+        `SELECT oppeaine.id, aineNimi, CONCAT(oppejoud.eesNimi, " ", oppejoud.pereNimi) AS Oppejoud,
+        koht.kohaNimi AS Koht, nadalapaev.paevaNimi AS Paev FROM oppeaine
+        INNER JOIN oppejoud ON oppejoud_id = oppejoud.id
+        INNER JOIN koht ON koht_id = koht.id
+        INNER JOIN nadalapaev ON nadalapaev_id = nadalapaev.id WHERE oppeaine.id = ?`, [id],
       );
       return oppeaine[0];
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
+  otsiOppeainet_oppejoud: async (id: number): Promise<Oppeaine[] | false> => {
+    try {
+      const [oppeaine]: [Oppeaine[], FieldPacket[]] = await yhendus.query(
+        `SELECT oppeaine.id, aineNimi, CONCAT(oppejoud.eesNimi, " ", oppejoud.pereNimi) AS Oppejoud,
+        koht.kohaNimi AS Koht, nadalapaev.paevaNimi AS Paev FROM oppeaine
+        INNER JOIN oppejoud ON oppejoud_id = oppejoud.id
+        INNER JOIN koht ON koht_id = koht.id
+        INNER JOIN nadalapaev ON nadalapaev_id = nadalapaev.id WHERE oppejoud.id = ?`, [id]);
+      return oppeaine;
     } catch (error) {
       console.log(error);
       return false;

@@ -59,6 +59,10 @@ app.get('/oppeaine', oppeaineController.kuvaKoikOppeained);
 // õppeainete otsimine id-ga
 app.get('/oppeaine/:id', oppeaineController.otsiOppeainet);
 
+// õppeainete otsimine õppejõu id-ga
+app.get('/oppeaine/oppejoud/:id', oppeaineController.otsiOppeainet_oppejoud);
+
+
 // õppeaine kustutamine
 app.delete('/oppeaine/:id', oppeaineController.kustutaOppeaine);
 

@@ -6,7 +6,9 @@ const oppejoudService = {
 
   kuvaKoikOppejoud: async (): Promise<Oppejoud[] | false> => {
     try {
-      const [oppejoud]: [Oppejoud[], FieldPacket[]] = await yhendus.query('SELECT id, eesNimi, pereNimi, kasutaja_id FROM oppejoud');
+      const [oppejoud]: [Oppejoud[], FieldPacket[]] = await yhendus.query(
+        `SELECT oppejoud.id, oppejoud.eesNimi, oppejoud.pereNimi, kasutaja.kasutajaNimi AS kasutaja FROM oppejoud
+         INNER JOIN kasutaja ON oppejoud.kasutaja_id = kasutaja.id`);
       return oppejoud;
     } catch (error) {
       console.log(error);
@@ -16,7 +18,8 @@ const oppejoudService = {
   otsiOppejoudu: async (id: number): Promise<Oppejoud | false> => {
     try {
       const [oppejoud]: [Oppejoud[], FieldPacket[]] = await yhendus.query(
-        'SELECT id, eesNimi, pereNimi, kasutaja_id FROM oppejoud WHERE id = ?', [id],
+        `SELECT oppejoud.id, oppejoud.eesNimi, oppejoud.pereNimi, kasutaja.kasutajaNimi AS kasutaja FROM oppejoud
+        INNER JOIN kasutaja ON oppejoud.kasutaja_id = kasutaja.id WHERE oppejoud.id = ?`, [id],
       );
       return oppejoud[0];
     } catch (error) {
