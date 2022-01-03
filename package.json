@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nyc mocha -r ts-node/register 'src/tests/*.ts' --exit"
   },
   "repository": {
     "type": "git",
@@ -19,13 +19,20 @@
   "homepage": "https://github.com/heigoAnkuhin/HKprog2#readme",
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/chai": "^4.3.0",
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.6",
+    "@types/mocha": "^9.0.0",
+    "@types/supertest": "^2.0.11",
     "@types/swagger-ui-express": "^4.1.3",
     "@types/uuid": "^8.3.3",
+    "chai": "^4.3.4",
     "express": "^4.17.1",
+    "mocha": "^9.1.3",
     "mysql2": "^2.3.3",
     "nodemon": "^2.0.12",
+    "nyc": "^15.1.0",
+    "supertest": "^6.1.6",
     "swagger-ui-express": "^4.1.6",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3",
